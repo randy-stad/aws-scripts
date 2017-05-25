@@ -1,5 +1,8 @@
 #!/bin/bash
 WHITELIST=$1
+VPC=$2
+
+securityGroups=$(aws ec2 describe-security-groups --filter Name=vpc-id,Values=$VPC --query "SecurityGroups[*].GroupId" --output text)
 
 echo "<table border='1' style='border-collapse:collapse;' cellpadding='4'>"
 echo "<tr>"
@@ -9,8 +12,12 @@ echo "<th>cidr</th>"
 echo "<th>whitelist</th>"
 echo "<th>whois</th>"
 echo "</tr>"
-for sg in ${@:2}
+for sg in $securityGroups
 do
+  while IFS=$'\t' read -r -a entry
+  do
+    echo "Read toPort ${entry[0]} fromPort ${entry[1]} cidr ${entry[2]}"
+  done < <(aws ec2 describe-security-groups --filter Name=group-id,Values=$sg --query "SecurityGroups[*].IpPermissions[*].{FromPort:FromPort,ToPort:ToPort,CidrIp:IpRanges[*].CidrIp}" | jq -r '.[0] | .[] | {ToPort: .ToPort, FromPort: .FromPort, CidrIp: .CidrIp[]} | [.ToPort, .FromPort, .CidrIp] | @tsv')
   cidrs=$(aws ec2 describe-security-groups --group-id $sg --query 'SecurityGroups[*].IpPermissions[*].IpRanges[*].[CidrIp]' --output text)
 	name=$(aws ec2 describe-security-groups --group-id $sg --query 'SecurityGroups[*].GroupName' --output text)
   for cidr in $cidrs; do
@@ -18,8 +25,9 @@ do
    		whitelist="YES"
 		else
 			whitelist="<b>NO</b>"
- 	fi
-    whois=$(whois $cidr | sed '/^#/d' | sed '/^\s*$/d' | sed 's/$/<br>/')
+ 	  fi
+    ip=${cidr%/*}
+    whois=$(whois $ip | sed '/^#/d' | sed '/^\s*$/d' | sed 's/$/<br>/')
 		echo "<tr>"
 		echo "<td valign='top' halign='left'>$sg</td>"
 		echo "<td valign='top' halign='left'>$name</td>"
