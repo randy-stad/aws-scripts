@@ -1,2 +1,2 @@
 # aws-scripts
-Various AWS scripts that do a number of things.
+Some scripts I use on a daily basis for various customers and environments.  Use as you see fit.
