@@ -11,7 +11,8 @@ else
 		#echo $FILENAME
 		rm -f $OKTA_HOME/out/config.properties
 		ln -s $FILENAME $OKTA_HOME/out/config.properties
-		java -classpath $OKTA_HOME/out/:$OKTA_HOME/out/oktaawscli.jar:$OKTA_HOME/lib/aws-java-sdk-1.11.132.jar com.okta.tools.awscli
+		cd $OKTA_HOME/out/
+		java -classpath $OKTA_HOME/out/:$OKTA_HOME/out/oktaawscli.jar:$OKTA_HOME/lib/aws-java-sdk-1.11.135.jar com.okta.tools.awscli
 	else
 		echo "Error no file name $FILENAME exists.  Are you sure thats the right account name?"
 	fi
